@@ -189,19 +189,20 @@ body { margin: 0; }
   .settimana {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 1px;
-    background: var(--filo-tenue);
     border-block: 1px solid var(--filo-tenue);
   }
 
   .giorno {
     background: var(--fondo);
+    border-right: 1px solid var(--filo-tenue);
     padding: 18px 12px 20px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
   }
+
+  .giorno:last-child { border-right: 0; }
 
   .giorno .nome {
     font-size: 12px;
@@ -397,6 +398,9 @@ body { margin: 0; }
 
   @media (max-width: 560px) {
     .settimana { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .giorno { border-bottom: 1px solid var(--filo-tenue); }
+    .giorno:nth-child(2n) { border-right: 0; }
+    .giorno:last-child { border-right: 0; border-bottom: 0; }
     .data { min-width: 0; flex-basis: 100%; }
   }
 
