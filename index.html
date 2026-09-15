@@ -3,17 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src data:; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src data:; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; require-trusted-types-for 'script'; trusted-types varen">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0B0C0D">
 <title>·</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="s.css">
+<link rel="stylesheet" href="s.css" integrity="sha384-qqNNw6fOGd9n+sLMEpzhqDB+JbY+5R3x7Kwbw0hjMWCYNTjA6JvRgvYxNp5LrGe4" crossorigin="anonymous">
 </head>
 <body>
-<div class="cancello" id="cancello" hidden><p>Codice non valido</p></div>
+<div class="cancello" id="cancello" hidden>
+  <span class="lockup">VAREN</span>
+  <form id="modulo" autocomplete="off">
+    <input id="password" name="password" type="password" placeholder="PASSWORD" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+    <button id="apri" type="submit">Apri</button>
+  </form>
+  <p id="avviso"></p>
+</div>
 <div id="contenuto" hidden></div>
-<script src="b.js"></script>
+<script src="b.js" integrity="sha384-uO/X3ycVOU9HmPldlny/eu+LmJexfJyGpf38OiIzyryOBy0p37ixY3YDLM/JtlY+" crossorigin="anonymous"></script>
 </body>
 </html>

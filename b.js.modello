@@ -1,0 +1,145 @@
+/* Disponibilita - accesso a due fattori.
+   Il contenuto e cifrato con AES-256-GCM. La chiave non e scritta da nessuna parte:
+   viene ricostruita nel browser da due segreti indipendenti.
+     1. il codice nel frammento dell'URL, che il browser non invia mai al server
+     2. la password, che non esce mai dalla pagina
+   Chi ha solo il link non apre. Chi ha solo la password non apre. */
+(function () {
+  "use strict";
+
+  // Nessun incorporamento in cornice: niente clickjacking.
+  if (window.top !== window.self) {
+    document.documentElement.textContent = "";
+    return;
+  }
+
+  var PAYLOAD = "__PAYLOAD__";
+  var SALE = "__SALE__";
+  var GIRI = __GIRI__;
+  var INFO = "varen/disponibilita/v1";
+  var INATTIVITA = 15 * 60 * 1000;
+
+  var politica = window.trustedTypes
+    ? trustedTypes.createPolicy("varen", { createHTML: function (s) { return s; } })
+    : null;
+
+  function byte(b64) {
+    var grezzo = atob(b64), out = new Uint8Array(grezzo.length);
+    for (var i = 0; i < grezzo.length; i++) out[i] = grezzo.charCodeAt(i);
+    return out;
+  }
+
+  function daUrl(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    return byte(s);
+  }
+
+  var cancello = document.getElementById("cancello");
+  var modulo = document.getElementById("modulo");
+  var campo = document.getElementById("password");
+  var bottone = document.getElementById("apri");
+  var avviso = document.getElementById("avviso");
+  var contenuto = document.getElementById("contenuto");
+
+  var codice = location.hash.replace(/^#/, "").replace(/^k_/, "").trim();
+  var segreto = /^[A-Za-z0-9_-]{43}$/.test(codice) ? daUrl(codice) : null;
+  var tentativi = 0;
+  var occupato = false;
+
+  cancello.hidden = false;
+  if (!segreto || !window.crypto || !crypto.subtle) {
+    modulo.hidden = true;
+    avviso.textContent = "Link non valido. Serve il link completo, il codice dopo il cancelletto compreso.";
+    return;
+  }
+  campo.focus();
+
+  function dice(testo) { avviso.textContent = testo; }
+
+  function chiave(password) {
+    var enc = new TextEncoder();
+    return crypto.subtle
+      .importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"])
+      .then(function (k) {
+        return crypto.subtle.deriveBits(
+          { name: "PBKDF2", salt: byte(SALE), iterations: GIRI, hash: "SHA-256" }, k, 256);
+      })
+      .then(function (bit) {
+        return crypto.subtle.importKey("raw", bit, { name: "HKDF" }, false, ["deriveKey"]);
+      })
+      .then(function (k) {
+        return crypto.subtle.deriveKey(
+          { name: "HKDF", hash: "SHA-256", salt: segreto, info: enc.encode(INFO) },
+          k, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      });
+  }
+
+  function apri(password) {
+    var dati = byte(PAYLOAD);
+    return chiave(password).then(function (k) {
+      return crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: dati.subarray(0, 12), tagLength: 128 }, k, dati.subarray(12));
+    });
+  }
+
+  function mostra(chiaro) {
+    var html = new TextDecoder("utf-8").decode(chiaro);
+    contenuto.innerHTML = politica ? politica.createHTML(html) : html;
+    contenuto.hidden = false;
+    cancello.remove();
+    // Il codice sparisce dalla barra degli indirizzi: non resta in cronologia
+    // ne nelle schermate condivise. Per riaprire serve di nuovo il link intero.
+    history.replaceState(null, "", location.pathname + location.search);
+    blocca();
+  }
+
+  function blocca() {
+    var orologio;
+    function riparti() {
+      clearTimeout(orologio);
+      orologio = setTimeout(function () {
+        contenuto.innerHTML = politica ? politica.createHTML("") : "";
+        contenuto.hidden = true;
+        document.body.appendChild(document.createElement("div")).className = "cancello";
+        document.body.lastChild.innerHTML = politica
+          ? politica.createHTML("<p>Sessione chiusa per inattivita. Riapri il link.</p>")
+          : "<p>Sessione chiusa per inattivita. Riapri il link.</p>";
+      }, INATTIVITA);
+    }
+    ["pointerdown", "keydown", "scroll", "visibilitychange"].forEach(function (e) {
+      addEventListener(e, riparti, { passive: true });
+    });
+    riparti();
+  }
+
+  modulo.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (occupato) return;
+    var password = campo.value;
+    if (!password) { dice("Inserisci la password."); return; }
+
+    occupato = true;
+    bottone.disabled = true;
+    campo.disabled = true;
+    dice("Sblocco in corso. Servono un paio di secondi.");
+
+    // Ritardo crescente: rende lenta l'insistenza dal browser.
+    var attesa = tentativi === 0 ? 0 : Math.min(8000, 500 * Math.pow(2, tentativi));
+
+    setTimeout(function () {
+      apri(password).then(function (chiaro) {
+        campo.value = "";
+        mostra(chiaro);
+      }).catch(function () {
+        tentativi++;
+        campo.value = "";
+        campo.disabled = false;
+        bottone.disabled = false;
+        occupato = false;
+        dice("Password errata.");
+        campo.focus();
+      });
+    }, attesa);
+  });
+})();

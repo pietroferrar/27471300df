@@ -403,17 +403,67 @@ body { margin: 0; }
 /* ---------- cancello ---------- */
 
 .cancello {
-  min-height: 60vh;
+  min-height: 70vh;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  padding: 24px;
+  align-items: center;
+  gap: 26px;
+  padding: 32px 24px;
+  text-align: center;
 }
+
+.cancello .lockup { font-size: 12px; }
+
+.cancello form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+}
+
+.cancello input {
+  flex: 1 1 220px;
+  min-width: 0;
+  background: transparent;
+  border: 1px solid var(--filo);
+  border-radius: 0;
+  color: var(--primario);
+  font-family: var(--satoshi);
+  font-size: 16px;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  padding: 12px 14px;
+}
+
+.cancello input::placeholder { color: var(--muted); letter-spacing: 0.14em; font-size: 13px; }
+.cancello input:focus { outline: none; border-color: var(--accento); }
+.cancello input:disabled { color: var(--muted); }
+
+.cancello button {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1px solid var(--accento);
+  border-radius: 0;
+  color: var(--accento);
+  font-family: var(--satoshi);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 12px 22px;
+  cursor: pointer;
+}
+
+.cancello button:disabled { border-color: var(--filo); color: var(--muted); cursor: default; }
 
 .cancello p {
   margin: 0;
+  max-width: 44ch;
   font-size: 13px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
+  min-height: 1.6em;
 }
