@@ -37,7 +37,9 @@ Il tag GCM autentica il contenuto: un file manomesso non si apre invece di aprir
   l'esterno, nessuna dipendenza da terzi.
 - `require-trusted-types-for 'script'`: l'unico punto in cui la pagina scrive HTML passa da una
   policy dichiarata, il resto del DOM e chiuso.
-- Subresource Integrity con SHA-384 su `s.css` e `b.js`: un file sostituito non viene eseguito.
+- Subresource Integrity con SHA-384 su foglio di stile e script: un file sostituito non viene
+  eseguito. Il nome dei due file porta l'impronta del contenuto, cosi la cache di GitHub non puo
+  servire una versione vecchia contro un hash nuovo.
 - La pagina si rifiuta di stare dentro una cornice: niente clickjacking.
 - Dopo lo sblocco il codice sparisce dalla barra degli indirizzi, quindi non resta in cronologia
   ne nelle schermate condivise. Per riaprire serve di nuovo il link intero.
@@ -52,11 +54,11 @@ Il tag GCM autentica il contenuto: un file manomesso non si apre invece di aprir
 |---|---|
 | `index.html` | Guscio: nessun dato oltre al modulo della password |
 | `404.html` | Copia del guscio |
-| `b.js` | Payload cifrato e logica di sblocco |
+| `b.js` | Payload cifrato e logica di sblocco; viene pubblicato come `b.<impronta>.js` |
 | `b.js.modello` | Sorgente di `b.js`, senza payload |
-| `s.css` | Stile e caratteri Satoshi incorporati; nessun dato |
+| `s.css` | Stile e caratteri Satoshi incorporati; viene pubblicato come `s.<impronta>.css` |
 | `cifra.sh` | Ricifra il contenuto e stampa credenziali nuove |
-| `sri.sh` | Ricalcola gli hash Subresource Integrity |
+| `sri.sh` | Rinomina i file con l'impronta del contenuto e ricalcola gli hash Subresource Integrity |
 
 ## Aggiornare il contenuto o revocare l'accesso
 
